@@ -15,16 +15,16 @@ public class du {
     private LinkedList<String> files = new LinkedList<>();
 
     @Option(name = "-h", usage = "Usable format")
-    private boolean hF;
+    boolean hF;
 
     @Option(name = "-c", usage = "Summary size")
-    private boolean cF;
+    boolean cF;
 
     @Option(name = "--si", usage = "1000 base")
-    private boolean siF;
+    boolean siF;
 
     @Argument
-    private String[] arguments;
+    String[] arguments;
 
     private static String[] bases = new String[]{"B", "KB", "MB", "GB"};
 
@@ -96,7 +96,6 @@ public class du {
             catch (CmdLineException e) {
                 System.err.println(e.getMessage());
                 System.err.println("java du [options...] arguments...");
-                System.err.println();
             }
         }
     }
