@@ -1,4 +1,3 @@
-package du;
 import javafx.util.Pair;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
