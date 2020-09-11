@@ -12,14 +12,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-class FileInfo {
-    public String name;
-    public long size;
-
-    public FileInfo(String name, long sum) {
-    }
-}
-
 public class du {
     private LinkedList<String> files = new LinkedList<>();
 
@@ -34,63 +26,58 @@ public class du {
 
     @Argument
     private String[] arguments;
-    /*
-    public static void main(String[] args) throws IOException {
-        new du().fileSize(args);
-    }
-     */
+
     private static String[] bases = new String[]{"B", "KB", "MB", "GB"};
 
-    public Pair<Double, String> based (long size, int base) {
+    public static Pair<Double, Integer> based(double size, int base) {
         int c = 0;
-        double nsize = size;
-        while (c < 3 && nsize > base) {
-            nsize /= base;
+        while (c < 3 && size >= base) {
+            size /= base;
             c++;
         }
-        Pair<Double, String> ret = new Pair(nsize, c);
+        Pair<Double, Integer> ret = new Pair(size, c);
         return ret;
     }
 
-    public static ArrayList<FileInfo> filesPaths(String[] paths) throws IOException {
-        ArrayList<FileInfo> allFiles = new ArrayList<>();
+    public static ArrayList<Pair<String, Long>> filesPaths(String[] paths) throws IOException {
+        ArrayList<Pair<String, Long>> allFiles = new ArrayList<>();
         for (String name: paths) {
             File file = new File(name);
             if (file.exists()) {
                 if (file.isDirectory()) {
-                    allFiles.add(new FileInfo(name, Files.walk(Paths.get(name))
+                    allFiles.add(new Pair<String, Long>(name, Files.walk(Paths.get(name))
                             .filter(p -> p.toFile().isFile())
                             .mapToLong(p -> p.toFile().length())
                             .sum()));
-                }   else allFiles.add(new FileInfo(name, file.length()));
-            } else allFiles.add(new FileInfo(name, -1));
+                }   else allFiles.add(new Pair<String, Long>(name, file.length()));
+            } else allFiles.add(new Pair<String, Long>(name, (long) -1));
         }
         return allFiles;
     }
 
     private static void printFiles(int base, boolean form, boolean sum, String[] paths) throws IOException {
-        ArrayList<FileInfo> files = filesPaths(paths);
+        ArrayList<Pair<String, Long>> files = filesPaths(paths);
         if (sum) {
             double summary = 0;
-            for (FileInfo file: files) {
-                if (file.size != -1)
-                    summary += file.size;
+            for (Pair<String, Long> file: files) {
+                if (file.getValue() != -1)
+                    summary += file.getValue();
             }
             if (form) {
-                Pair<Integer, String> formed = new Pair(summary, base);
-                System.out.printf("Total size: %.2f %s", (double)formed.getKey(), bases[formed.getKey()]);
+                Pair<Double, Integer> formed = based(summary, base);
+                System.out.printf("Total size: %.2f %s", (double)formed.getKey(), bases[formed.getValue()]);
             } else System.out.printf("Total size of files: %.2f", summary / base);
         }
         else {
-            for (FileInfo file: files) {
-                if (file.size == -1) System.out.println ("File " + file.name + " do not exist");
+            for (Pair<String, Long> file: files) {
+                if (file.getValue() == -1) System.out.println ("File " + file.getValue() + " do not exist");
                 else {
                     if (form) {
-                        Pair<Integer, String> formed = new Pair(file.size, base);
-                        System.out.println(file.name + formed.getKey() + bases[formed.getKey()]);
+                        Pair<Double, Integer> formed = based(file.getValue(), base);
+                        System.out.println(file.getValue() + formed.getKey() + bases[formed.getValue()]);
                     }
                     else {
-                        System.out.println(file.name + file.size);
+                        System.out.println(file.getKey() + file.getValue());
                     }
                 }
             }
@@ -112,12 +99,6 @@ public class du {
                 System.err.println("java du [options...] arguments...");
                 System.err.println();
             }
-            /*
-            for (int i = 0; i < arguments.size(); i++) {
-                File file = new File(arguments[i]);
-            }
-
-             */
         }
     }
 
