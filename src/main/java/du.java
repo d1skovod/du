@@ -8,7 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class du {
 
@@ -46,49 +47,50 @@ public class du {
         return null;
     }
 
-    public static Map<String, Long> filesPaths(String[] paths) throws IOException {
-        Map<String, Long> allFiles = null;
+    public static ArrayList<Pair<String, Long>> filesPaths(String[] paths) throws IOException {
+        ArrayList<Pair<String, Long>> allFiles = new ArrayList<>();
         for (String name: paths) {
             File file = new File(name);
             if (file.exists()) {
                 if (file.isDirectory()) {
-                    allFiles.put(name, Files.walk(Paths.get(name))
+                    allFiles.add(new Pair<String, Long>(name, Files.walk(Paths.get(name))
                             .filter(p -> p.toFile().isFile())
                             .mapToLong(p -> p.toFile().length())
-                            .sum());
+                            .sum()));
                 }   else {
-                    allFiles.put(name, file.length());
+                    allFiles.add(new Pair<String, Long>(name, file.length()));
                 }
             } else {
-                allFiles.put(name, (long) -1);
+                allFiles.add(new Pair<String, Long>(name, (long) -1));
             }
         }
         return allFiles;
     }
 
-    public static void printFiles(int base, boolean form, boolean sum, String[] paths) throws IOException {
-        Map<String, Long> files = filesPaths(paths);
+    public static void printFiles(boolean base, boolean form, boolean sum, String[] paths) throws IOException {
+        int b = base ? 1000 : 1024;
+        List<Pair<String, Long>> files = filesPaths(paths);
         if (sum) {
             double summary = 0;
-            for (Map.Entry<String, Long> entry: files.entrySet()) {
-                if (entry.getValue() != -1)
-                    summary += entry.getValue();
+            for (Pair<String, Long> file: files) {
+                if (file.getValue() != -1)
+                    summary += file.getValue();
             }
             if (form) {
-                Pair<Double, Enum> formed = based(summary, base);
+                Pair<Double, Enum> formed = based(summary, b);
                 System.out.printf("Total size: %.2f %s", (double)formed.getKey(), formed.getValue());
-            } else System.out.printf("Total size of files: %.2f", summary / base);
+            } else System.out.printf("Total size of files: %.2f", summary / b);
         }
         else {
-            for (Map.Entry<String, Long> entry: files.entrySet()){
-                if (entry.getValue() == -1) System.out.println ("File " + entry.getValue() + " do not exist");
+            for (Pair<String, Long> file: files) {
+                if (file.getValue() == -1) System.out.println ("File " + file.getValue() + " do not exist");
                 else {
                     if (form) {
-                        Pair<Double, Enum> formed = based(entry.getValue(), base);
-                        System.out.println(entry.getKey() + " " + formed.getKey() + formed.getValue());
+                        Pair<Double, Enum> formed = based(file.getValue(), b);
+                        System.out.println(file.getKey() + " " + formed.getKey() + formed.getValue());
                     }
                     else {
-                        System.out.println(entry.getKey() + " " + entry.getValue());
+                        System.out.println(file.getKey() + " " + file.getValue());
                     }
                 }
             }
@@ -103,7 +105,7 @@ public class du {
             }
             catch (CmdLineException e) {
                 System.err.println(e.getMessage());
-                System.err.println("java du [options...] arguments...");
+                System.err.println("Error: wrong arguments");
             }
         } else {
             parser.printUsage(System.err);
@@ -114,6 +116,6 @@ public class du {
     public static void main(final String[] arguments) throws IOException, NullPointerException {
         du d = new du();
         d.fileSize(arguments);
-        printFiles(d.siF ? 1000 : 1024, d.hF, d.cF, d.arguments);
+        printFiles(d.siF, d.hF, d.cF, d.arguments);
     }
 }
