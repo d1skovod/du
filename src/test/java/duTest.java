@@ -17,10 +17,10 @@ class duTest {
 
     @Test
     void filesPaths() throws IOException {
-        assertEquals(du.filesPaths(new String[]{"src/test/files/test1"}).get(0).getValue(), 11);
-        assertEquals(du.filesPaths(new String[]{"src/test/files/test2"}).get(0).getValue(), 12);
-        assertEquals(du.filesPaths(new String[]{"src/test/files/test3"}).get(0).getValue(), 17);
-        assertEquals(du.filesPaths(new String[]{"src/test/files/"}).get(0).getValue(), 40);
+        assertEquals(11, du.filesPaths(new String[]{"src/test/files/test1"}).get(0).getValue());
+        assertEquals(12,du.filesPaths(new String[]{"src/test/files/test2"}).get(0).getValue());
+        assertEquals(17, du.filesPaths(new String[]{"src/test/files/test3"}).get(0).getValue());
+        assertEquals(40, du.filesPaths(new String[]{"src/test/files/"}).get(0).getValue());
     }
 
 }

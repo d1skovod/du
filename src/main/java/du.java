@@ -9,10 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 public class du {
-    private LinkedList<String> files = new LinkedList<>();
 
     @Option(name = "-h", usage = "Usable format")
     boolean hF;
@@ -23,10 +21,10 @@ public class du {
     @Option(name = "--si", usage = "1000 base")
     boolean siF;
 
-    @Argument
+    @Argument(required = true)
     String[] arguments;
 
-    private static String[] bases = new String[]{"B", "KB", "MB", "GB"};
+    static String[] bases = new String[]{"B", "KB", "MB", "GB"};
 
     public static Pair<Double, Integer> based(double size, int base) {
         int c = 0;
@@ -54,7 +52,7 @@ public class du {
         return allFiles;
     }
 
-    private static void printFiles(int base, boolean form, boolean sum, String[] paths) throws IOException {
+    public static void printFiles(int base, boolean form, boolean sum, String[] paths) throws IOException {
         ArrayList<Pair<String, Long>> files = filesPaths(paths);
         if (sum) {
             double summary = 0;
@@ -83,13 +81,9 @@ public class du {
         }
     }
 
-    private void fileSize(String[] args) {
-        CmdLineParser parser = new CmdLineParser(this);
-        if (arguments.length == 0) {
-            parser.printUsage(System.err);
-            System.exit(0);
-        }
-        else {
+    void fileSize(String[] args) {
+        final CmdLineParser parser = new CmdLineParser(this);
+        if (args.length != 0) {
             try {
                 parser.parseArgument(args);
             }
@@ -97,11 +91,14 @@ public class du {
                 System.err.println(e.getMessage());
                 System.err.println("java du [options...] arguments...");
             }
+        } else {
+            parser.printUsage(System.err);
+            System.exit(0);
         }
     }
 
     public static void main(final String[] arguments) throws IOException {
-        final du d = new du();
+        du d = new du();
         d.fileSize(arguments);
         printFiles(d.siF ? 1000 : 1024, d.hF, d.cF, d.arguments);
     }
