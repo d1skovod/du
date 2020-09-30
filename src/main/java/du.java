@@ -71,10 +71,10 @@ public class du {
                 else {
                     if (form) {
                         Pair<Double, Integer> formed = based(file.getValue(), base);
-                        System.out.println(file.getValue() + formed.getKey() + bases[formed.getValue()]);
+                        System.out.println(file.getKey() + " " + formed.getKey() + bases[formed.getValue()]);
                     }
                     else {
-                        System.out.println(file.getKey() + file.getValue());
+                        System.out.println(file.getKey() + " " + file.getValue());
                     }
                 }
             }
