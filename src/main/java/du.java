@@ -8,73 +8,87 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.Map;
 
 public class du {
 
     @Option(name = "-h", usage = "Usable format")
-    boolean hF;
+    private boolean hF;
 
     @Option(name = "-c", usage = "Summary size")
-    boolean cF;
+    private boolean cF;
 
     @Option(name = "--si", usage = "1000 base")
-    boolean siF;
+    private boolean siF;
 
     @Argument(required = true)
-    String[] arguments;
+    private String[] arguments;
 
-    static String[] bases = new String[]{"B", "KB", "MB", "GB"};
+    enum format {
+        B,
+        KB,
+        MB,
+        GB
+    }
 
-    public static Pair<Double, Integer> based(double size, int base) {
+    public static Pair<Double, Enum> based(double size, int base) {
         int c = 0;
-        while (c < 3 && size >= base) {
+        while (c < 3  && size >= base) {
             size /= base;
             c++;
         }
-        Pair<Double, Integer> ret = new Pair(size, c);
-        return ret;
+        switch (c) {
+            case 0 : return new Pair(size, format.B);
+            case 1 : return new Pair(size, format.KB);
+            case 2 : return new Pair(size, format.MB);
+            case 3 : return new Pair(size, format.GB);
+        }
+        return null;
     }
 
-    public static ArrayList<Pair<String, Long>> filesPaths(String[] paths) throws IOException {
-        ArrayList<Pair<String, Long>> allFiles = new ArrayList<>();
+    public static Map<String, Long> filesPaths(String[] paths) throws IOException {
+        Map<String, Long> allFiles = null;
         for (String name: paths) {
             File file = new File(name);
             if (file.exists()) {
                 if (file.isDirectory()) {
-                    allFiles.add(new Pair<String, Long>(name, Files.walk(Paths.get(name))
+                    allFiles.put(name, Files.walk(Paths.get(name))
                             .filter(p -> p.toFile().isFile())
                             .mapToLong(p -> p.toFile().length())
-                            .sum()));
-                }   else allFiles.add(new Pair<String, Long>(name, file.length()));
-            } else allFiles.add(new Pair<String, Long>(name, (long) -1));
+                            .sum());
+                }   else {
+                    allFiles.put(name, file.length());
+                }
+            } else {
+                allFiles.put(name, (long) -1);
+            }
         }
         return allFiles;
     }
 
     public static void printFiles(int base, boolean form, boolean sum, String[] paths) throws IOException {
-        ArrayList<Pair<String, Long>> files = filesPaths(paths);
+        Map<String, Long> files = filesPaths(paths);
         if (sum) {
             double summary = 0;
-            for (Pair<String, Long> file: files) {
-                if (file.getValue() != -1)
-                    summary += file.getValue();
+            for (Map.Entry<String, Long> entry: files.entrySet()) {
+                if (entry.getValue() != -1)
+                    summary += entry.getValue();
             }
             if (form) {
-                Pair<Double, Integer> formed = based(summary, base);
-                System.out.printf("Total size: %.2f %s", (double)formed.getKey(), bases[formed.getValue()]);
+                Pair<Double, Enum> formed = based(summary, base);
+                System.out.printf("Total size: %.2f %s", (double)formed.getKey(), formed.getValue());
             } else System.out.printf("Total size of files: %.2f", summary / base);
         }
         else {
-            for (Pair<String, Long> file: files) {
-                if (file.getValue() == -1) System.out.println ("File " + file.getValue() + " do not exist");
+            for (Map.Entry<String, Long> entry: files.entrySet()){
+                if (entry.getValue() == -1) System.out.println ("File " + entry.getValue() + " do not exist");
                 else {
                     if (form) {
-                        Pair<Double, Integer> formed = based(file.getValue(), base);
-                        System.out.println(file.getKey() + " " + formed.getKey() + bases[formed.getValue()]);
+                        Pair<Double, Enum> formed = based(entry.getValue(), base);
+                        System.out.println(entry.getKey() + " " + formed.getKey() + formed.getValue());
                     }
                     else {
-                        System.out.println(file.getKey() + " " + file.getValue());
+                        System.out.println(entry.getKey() + " " + entry.getValue());
                     }
                 }
             }
@@ -97,7 +111,7 @@ public class du {
         }
     }
 
-    public static void main(final String[] arguments) throws IOException {
+    public static void main(final String[] arguments) throws IOException, NullPointerException {
         du d = new du();
         d.fileSize(arguments);
         printFiles(d.siF ? 1000 : 1024, d.hF, d.cF, d.arguments);
