@@ -25,4 +25,26 @@ class duTest {
             assertEquals(excepted[i], du.filesPaths(files[i]).get(0).getValue());
         }
     }
+
+    @Test
+    void fileSizeTest(){
+        testFunc("-h cogito", false, true, false, new String[]{"cogito"});
+        testFunc("-h --si -c", true, true, true, new String[]{""});
+        testFunc("-h --si -c cogito ergo sum",
+                true, true, true, new String[]{"cogito", "ergo", "sum"});
+        testFunc("",false, false, false, new String[]{""});
+    }
+
+    public void testFunc(String input, boolean base, boolean form, boolean sum, String[] paths) {
+        du d = new du();
+        d.fileSize(input.split(" "));
+        assertEquals(base, d.siF);
+        assertEquals(form, d.hF);
+        assertEquals(sum, d.cF);
+        if (d.arguments != null) {
+            assertArrayEquals(paths, d.arguments);
+        } else {
+            assert(paths.length == 1);
+        }
+    }
 }

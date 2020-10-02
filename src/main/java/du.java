@@ -14,16 +14,16 @@ import java.util.List;
 public class du {
 
     @Option(name = "-h", usage = "Usable format")
-    private boolean hF;
+    boolean hF;
 
     @Option(name = "-c", usage = "Summary size")
-    private boolean cF;
+    boolean cF;
 
     @Option(name = "--si", usage = "1000 base")
-    private boolean siF;
+    boolean siF;
 
-    @Argument(required = true)
-    private String[] arguments;
+    @Argument
+    String[] arguments;
 
     enum format {
         B,
@@ -53,15 +53,15 @@ public class du {
             File file = new File(name);
             if (file.exists()) {
                 if (file.isDirectory()) {
-                    allFiles.add(new Pair<String, Long>(name, Files.walk(Paths.get(name))
+                    allFiles.add(new Pair<>(name, Files.walk(Paths.get(name))
                             .filter(p -> p.toFile().isFile())
                             .mapToLong(p -> p.toFile().length())
                             .sum()));
                 }   else {
-                    allFiles.add(new Pair<String, Long>(name, file.length()));
+                    allFiles.add(new Pair<>(name, file.length()));
                 }
             } else {
-                allFiles.add(new Pair<String, Long>(name, (long) -1));
+                allFiles.add(new Pair<>(name, (long) -1));
             }
         }
         return allFiles;
@@ -97,7 +97,7 @@ public class du {
         }
     }
 
-    void fileSize(String[] args) {
+    public void fileSize(String[] args) {
         final CmdLineParser parser = new CmdLineParser(this);
         if (args.length != 0) {
             try {
